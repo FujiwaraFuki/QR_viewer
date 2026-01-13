@@ -8,13 +8,13 @@ import os
 # 設定
 # =========================
 
-CSV_PATH = "analysis_master.csv"
+CSV_PATH = "sample_master.csv"
 HOST = "0.0.0.0"
 PORT = 8000
 
 # Basic認証ユーザー（適宜変更）
 users = {
-    "symbio": generate_password_hash("labpass")
+    "symbio": generate_password_hash("ichihashi9118")
 }
 
 # =========================
@@ -67,10 +67,10 @@ HTML = """
 # ルーティング
 # =========================
 
-@app.route("/sample/<analysis_id>")
+@app.route("/sample/<sample_id>")
 @auth.login_required
-def show_sample(analysis_id):
-    row = df[df["data_id"] == analysis_id]
+def show_sample(sample_id):
+    row = df[df["sample_id"] == sample_id]
 
     if row.empty:
         return "Analysis ID not found", 404
