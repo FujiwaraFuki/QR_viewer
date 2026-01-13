@@ -10,6 +10,7 @@ import os
 
 CSV_PATH1 = "sample_master.csv"
 CSV_PATH2 = "location_master.csv"
+CSV_PATH3 = "project_master.csv"
 HOST = "0.0.0.0"
 PORT = 8000
 
@@ -27,6 +28,7 @@ auth = HTTPBasicAuth()
 
 df1 = pd.read_csv(CSV_PATH1)
 df2 = pd.read_csv(CSV_PATH2)
+df3 = pd.read_csv(CSV_PATH3)
 
 # =========================
 # 認証処理
@@ -55,9 +57,15 @@ HTML = """
   </style>
 </head>
 <body>
-  <h2>解析サンプル情報</h2>
+  <h2>サンプル概要</h2>
   <ul>
-    {% for k, v in data.items() %}
+    {% for k, v in data1.items() %}
+      <li><b>{{ k }}</b>: {{ v }}</li>
+    {% endfor %}
+  </ul>
+  <h2>詳細</h2>
+  <ul>
+    {% for k, v in data2.items() %}
       <li><b>{{ k }}</b>: {{ v }}</li>
     {% endfor %}
   </ul>
@@ -78,24 +86,45 @@ def show_sample(sample_id):
     if row1.empty:
         return "Sample ID not found", 404
 
-    sample_data = row1.iloc[0].to_dict()
+    sample_data1 = row1.iloc[0, [0,2,3]].to_dict()
+    sample_data2 = row1.iloc[0, 4:].to_dict()
 
     # --- location_id を取得 ---
-    location_id = sample_data.get("location_id")
+    location_id = row1.iloc[0,].to_dict().get("location_id")
 
     # --- location_master から該当行 ---
-    location_data = {}
+    location_data1 = {}
+    location_data2 = {}
     if location_id is not None:
         row2 = df2[df2["location_id"] == location_id]
         if not row2.empty:
-            location_data = row2.iloc[0].to_dict()
+            location_data1 = row2.iloc[0, [0,2,3]].to_dict()
+            location_data2 = row2.iloc[0, 4:].to_dict()
+
+    # --- project_id を取得 ---
+    project_id = row2.iloc[0,].to_dict().get("project_id")
+
+    # --- pproject_master から該当行 ---
+    project_data1 = {}
+    project_data2 = {}
+    if project_id is not None:
+        row3 = df3[df3["project_id"] == project_id]
+        if not row3.empty:
+            location_data3 = row3.iloc[0, 0:3].to_dict()
+            location_data3 = row3.iloc[0, 3:].to_dict()
 
     # --- データを結合（同じ ul に出す） ---
-    combined_data = {}
-    combined_data.update(location_data)
-    combined_data.update(sample_data)
+    combined_data1 = {}
+    combined_data1.update(project_data1)
+    combined_data1.update(location_data1)
+    combined_data1.update(sample_data1)
 
-    return render_template_string(HTML, data=combined_data)
+    combined_data2 = {}
+    combined_data2.update(location_data2)
+    combined_data2.update(sample_data2)
+    combined_data2.update(project_data2)
+
+    return render_template_string(HTML, data1=combined_data1, data2=combined_data2)
 
 # =========================
 # 起動
