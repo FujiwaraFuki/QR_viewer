@@ -93,7 +93,7 @@ def show_sample(sample_id):
     # --- データを結合（同じ ul に出す） ---
     combined_data = {}
     combined_data.update(location_data)
-    # combined_data.update(sample_data)
+    combined_data.update(sample_data)
 
     return render_template_string(HTML, data=combined_data)
 
