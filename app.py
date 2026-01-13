@@ -8,7 +8,8 @@ import os
 # 設定
 # =========================
 
-CSV_PATH = "sample_master.csv"
+CSV_PATH1 = "sample_master.csv"
+CSV_PATH2 = "location_master.csv"
 HOST = "0.0.0.0"
 PORT = 8000
 
@@ -24,7 +25,8 @@ users = {
 app = Flask(__name__)
 auth = HTTPBasicAuth()
 
-df = pd.read_csv(CSV_PATH)
+df1 = pd.read_csv(CSV_PATH1)
+df2 = pd.read_csv(CSV_PATH2)
 
 # =========================
 # 認証処理
@@ -70,13 +72,30 @@ HTML = """
 @app.route("/sample/<sample_id>")
 @auth.login_required
 def show_sample(sample_id):
-    row = df[df["sample_id"] == sample_id]
 
-    if row.empty:
-        return "Analysis ID not found", 404
+    # --- sample_master から該当行 ---
+    row1 = df1[df1["sample_id"] == sample_id]
+    if row1.empty:
+        return "Sample ID not found", 404
 
-    data = row.iloc[0].to_dict()
-    return render_template_string(HTML, data=data)
+    sample_data = row1.iloc[0].to_dict()
+
+    # --- location_id を取得 ---
+    location_id = sample_data.get("location_id")
+
+    # --- location_master から該当行 ---
+    location_data = {}
+    if location_id is not None:
+        row2 = df2[df2["location_id"] == location_id]
+        if not row2.empty:
+            location_data = row2.iloc[0].to_dict()
+
+    # --- データを結合（同じ ul に出す） ---
+    combined_data = {}
+    combined_data.update(location_data)
+    combined_data.update(sample_data)
+
+    return render_template_string(HTML, data=combined_data)
 
 # =========================
 # 起動
